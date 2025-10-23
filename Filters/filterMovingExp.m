@@ -1,21 +1,21 @@
 %% EXPONENTIAL MOVING AVERAGE FILTER
-function y = filterMovingExp(data, alpha)
-% FILTERMOVINGEXP Apply exponential moving average filter to data
-%
-% Syntax:
-%   y = filterMovingExp(data, alpha)
-%
-% Inputs:
-%   data  - Input signal vector
-%   alpha - Smoothing factor between 0 and 1 (default: 0.3)
-%           Higher values = more responsive, lower values = more smoothing
-%
-% Output:
-%   y - Filtered signal
-%
-% Example:
-%   y = filterMovingExp(data, 0.2);
+%% FILTERMOVINGEXP Apply exponential moving average filter to data
+%%
+%% Syntax:
+%%   y = filterMovingExp(data, alpha)
+%%
+%% Inputs:
+%%   data  - Input signal vector
+%%   alpha - Smoothing factor between 0 and 1 (default: 0.3)
+%%           Higher values = more responsive, lower values = more smoothing
+%%
+%% Output:
+%%   y - Filtered signal
+%%
+%% Example:
+%%   y = filterMovingExp(data, 0.2);
 
+function y = filterMovingExp(data, alpha)
     if nargin < 2, alpha = 0.3; end
     
     if alpha <= 0 || alpha > 1

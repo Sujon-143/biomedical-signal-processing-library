@@ -1,23 +1,23 @@
 %% LOWPASS FILTER
-function y = filterLowpass(data, fs, fc, order, method)
-% FILTERLOWPASS Apply lowpass filter to data
-%
-% Syntax:
-%   y = filterLowpass(data, fs, fc, order, method)
-%
-% Inputs:
-%   data   - Input signal vector
-%   fs     - Sampling frequency (Hz)
-%   fc     - Cutoff frequency (Hz)
-%   order  - Filter order (default: 4)
-%   method - IIRMethods enum (default: IIRMethods.Butterworth)
-%
-% Output:
-%   y - Filtered signal
-%
-% Example:
-%   y = filterLowpass(data, 1000, 50, 6, IIRMethods.Butterworth);
+%% FILTERLOWPASS Apply lowpass filter to data
+%%
+%% Syntax:
+%%   y = filterLowpass(data, fs, fc, order, method)
+%%
+%% Inputs:
+%%   data   - Input signal vector
+%%   fs     - Sampling frequency (Hz)
+%%   fc     - Cutoff frequency (Hz)
+%%   order  - Filter order (default: 4)
+%%   method - IIRMethods enum (default: IIRMethods.Butterworth)
+%%
+%% Output:
+%%   y - Filtered signal
+%%
+%% Example:
+%%   y = filterLowpass(data, 1000, 50, 6, IIRMethods.Butterworth);
 
+function y = filterLowpass(data, fs, fc, order, method)
     if nargin < 4, order = 4; end
     if nargin < 5, method = IIRMethods.Butterworth; end
     

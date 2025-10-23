@@ -1,19 +1,19 @@
 %% MOVING AVERAGE FILTER
+%% FILTERMOVINGAVERAGE Apply moving average filter to data
+%%
+%% Syntax:
+%%   y = filterMovingAverage(data, windowSize)
+%%
+%% Inputs:
+%%   data       - Input signal vector
+%%   windowSize - Window size for averaging (default: 5)
+%%
+%% Output:
+%%   y - Filtered signal
+%%
+%% Example:
+%%   y = filterMovingAverage(data, 10);
 function y = filterMovingAverage(data, windowSize)
-% FILTERMOVINGAVERAGE Apply moving average filter to data
-%
-% Syntax:
-%   y = filterMovingAverage(data, windowSize)
-%
-% Inputs:
-%   data       - Input signal vector
-%   windowSize - Window size for averaging (default: 5)
-%
-% Output:
-%   y - Filtered signal
-%
-% Example:
-%   y = filterMovingAverage(data, 10);
 
     if nargin < 2, windowSize = 5; end
     
