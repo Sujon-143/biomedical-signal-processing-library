@@ -1,257 +1,139 @@
-# Digital Filters Library
+# Biomedical Signal Processing Library
 
 A comprehensive collection of digital filter implementations for MATLAB **without requiring the Signal Processing Toolbox**. All filters are implemented from scratch using fundamental DSP principles.
 
-## Table of Contents
-- [Overview](#overview)
-- [Installation](#installation)
-- [Filter Types](#filter-types)
-- [IIR Filter Methods](#iir-filter-methods)
-- [Usage Examples](#usage-examples)
-- [Filter Comparison](#filter-comparison)
-- [Technical Details](#technical-details)
-- [API Reference](#api-reference)
+## Features
+
+- **Dual Interface**: Both functional and object-oriented APIs
+- **IIR Filters**: Butterworth, Chebyshev Type 1/2, Elliptic designs
+- **Filter Types**: Lowpass, Highpass, Bandpass, Bandstop
+- **Other Filters**: Moving Average, Exponential Moving Average, Kalman
+- **Zero-Phase Filtering**: Uses `filtfilt` implementation to eliminate phase distortion
+- **No Toolbox Required**: Pure MATLAB implementation
 
 ---
 
-## Overview
+## Quick Start
 
-This library provides two main categories of filters:
+### Installation
 
-### **IIR Filters (Infinite Impulse Response)**
-- Lowpass, Highpass, Bandpass, Bandstop
-- Methods: Butterworth, Chebyshev Type 1, Chebyshev Type 2, Elliptic
-- Uses feedback for efficient sharp cutoffs
-- Zero-phase filtering via `filtfilt` implementation
-
-### **Other Filters**
-- Moving Average (simple smoothing)
-- Exponential Moving Average (weighted smoothing)
-- Kalman Filter (optimal estimation)
-
----
-
-## Installation
-
-1. Clone or download the filter library
-2. Add the folder to your MATLAB path:
 ```matlab
 addpath('path/to/filters');
 ```
 
-3. Ensure you have the enumeration files:
-   - `FilterTypes.m`
-   - `IIRMethods.m`
+### Basic Usage
 
-### File Structure
+**Functional Interface** (simple, one-time use):
+```matlab
+% Lowpass filter at 50 Hz
+y = filterLowpass(data, 1000, 50);
+
+% Bandpass filter 10-100 Hz
+y = filterBandpass(data, 1000, 10, 100);
 ```
-filters/
-├── FilterHelpers.m          % Internal helper functions
-├── FilterTypes.m            % Enumeration of filter types
-├── IIRMethods.m            % Enumeration of IIR methods
-├── filterLowpass.m
-├── filterHighpass.m
-├── filterBandpass.m
-├── filterBandstop.m
-├── filterMovingAverage.m
-├── filterMovingExp.m
-├── filterKalman.m
-├── filterButterworth.m
-├── filterChebyshev1.m
-├── filterChebyshev2.m
-└── filterElliptic.m
+
+**Class Interface** (reusable, object-oriented):
+```matlab
+% Create filter object
+lpf = LowpassFilter(1000, 50);
+
+% Apply to multiple signals
+y1 = lpf.apply(data1);
+y2 = lpf.apply(data2);
+
+% Update parameters
+lpf.setCutoff(30);
+y3 = lpf.apply(data3);
 ```
 
 ---
 
-## Filter Types
+## Available Filters
 
-### 1. **Lowpass Filter**
-Passes low frequencies, attenuates high frequencies.
+### IIR Filters
+| Filter Type | Functional | Class |
+|-------------|-----------|-------|
+| **Lowpass** | `filterLowpass(data, fs, fc, ...)` | `LowpassFilter(fs, fc, ...)` |
+| **Highpass** | `filterHighpass(data, fs, fc, ...)` | `HighpassFilter(fs, fc, ...)` |
+| **Bandpass** | `filterBandpass(data, fs, fc1, fc2, ...)` | `BandpassFilter(fs, fc1, fc2, ...)` |
+| **Bandstop** | `filterBandstop(data, fs, fc1, fc2, ...)` | `BandstopFilter(fs, fc1, fc2, ...)` |
 
-```matlab
-y = filterLowpass(data, fs, fc, order, method);
-```
+**IIR Methods**: Butterworth (default), Chebyshev1, Chebyshev2, Elliptic
 
-**Use cases**: Remove high-frequency noise, smooth signals, anti-aliasing
-
----
-
-### 2. **Highpass Filter**
-Passes high frequencies, attenuates low frequencies.
-
-```matlab
-y = filterHighpass(data, fs, fc, order, method);
-```
-
-**Use cases**: Remove DC offset, eliminate low-frequency drift, baseline correction
-
----
-
-### 3. **Bandpass Filter**
-Passes frequencies within a specific band.
-
-```matlab
-y = filterBandpass(data, fs, fc1, fc2, order, method);
-```
-
-**Use cases**: Extract specific frequency bands, isolate signals of interest
-
----
-
-### 4. **Bandstop (Notch) Filter**
-Attenuates frequencies within a specific band.
-
-```matlab
-y = filterBandstop(data, fs, fc1, fc2, order, method);
-```
-
-**Use cases**: Remove power line interference (50/60 Hz), eliminate specific noise
-
----
-
-### 5. **Moving Average Filter**
-Simple averaging over a sliding window.
-
-```matlab
-y = filterMovingAverage(data, windowSize);
-```
-
-**Use cases**: Basic smoothing, noise reduction, trend extraction
-
----
-
-### 6. **Exponential Moving Average**
-Weighted average giving more importance to recent samples.
-
-```matlab
-y = filterMovingExp(data, alpha);
-```
-
-**Use cases**: Real-time smoothing, trend following, responsive filtering
-
----
-
-### 7. **Kalman Filter**
-Optimal recursive estimator for linear systems.
-
-```matlab
-y = filterKalman(data, processNoise, measNoise, initialEst, initialCov);
-```
-
-**Use cases**: Sensor fusion, state estimation, tracking, optimal noise reduction
-
----
-
-## IIR Filter Methods
-
-All IIR filters (lowpass, highpass, bandpass, bandstop) support four design methods:
-
-### 1. **Butterworth** (`IIRMethods.Butterworth`)
-- **Characteristics**: Maximally flat passband
-- **Pros**: Smooth frequency response, no ripple
-- **Cons**: Slow roll-off
-- **Best for**: General-purpose filtering, audio applications
-
-```matlab
-y = filterLowpass(data, 1000, 50, 4, IIRMethods.Butterworth);
-```
-
----
-
-### 2. **Chebyshev Type 1** (`IIRMethods.Chebyshev1`)
-- **Characteristics**: Ripple in passband, flat stopband
-- **Pros**: Sharper roll-off than Butterworth
-- **Cons**: Passband ripple
-- **Parameter**: `ripple` - Passband ripple in dB (typical: 0.5-3 dB)
-- **Best for**: When sharp cutoff is needed and passband ripple is acceptable
-
-```matlab
-y = filterChebyshev1(data, 1000, 50, 4, 1, 'low');  % 1 dB ripple
-```
-
----
-
-### 3. **Chebyshev Type 2** (`IIRMethods.Chebyshev2`)
-- **Characteristics**: Flat passband, ripple in stopband
-- **Pros**: No passband distortion, sharp roll-off
-- **Cons**: Stopband ripple
-- **Parameter**: `attenuation` - Stopband attenuation in dB (typical: 40-60 dB)
-- **Best for**: When passband flatness is critical
-
-```matlab
-y = filterChebyshev2(data, 1000, 50, 4, 40, 'low');  % 40 dB stopband
-```
-
----
-
-### 4. **Elliptic (Cauer)** (`IIRMethods.Elliptic`)
-- **Characteristics**: Ripple in both passband and stopband
-- **Pros**: Steepest roll-off for given order
-- **Cons**: Ripple in both bands, complex design
-- **Parameters**: `ripple` and `attenuation`
-- **Best for**: When the sharpest possible cutoff is needed
-
-```matlab
-y = filterElliptic(data, 1000, 50, 4, 1, 40, 'low');
-```
+### Other Filters
+| Filter Type | Functional | Class |
+|-------------|-----------|-------|
+| **Moving Average** | `filterMovingAverage(data, windowSize)` | `MovingAverageFilter(windowSize)` |
+| **Exponential MA** | `filterMovingExp(data, alpha)` | `ExponentialMovingAverageFilter(alpha)` |
+| **Kalman** | `filterKalman(data, Q, R, ...)` | `KalmanFilter(Q, R, ...)` |
 
 ---
 
 ## Usage Examples
 
-### Basic Filtering
+### Remove Noise from Signal
 
 ```matlab
-% Load or generate data
-fs = 1000;  % Sampling frequency
-t = 0:1/fs:1;
-data = sin(2*pi*10*t) + 0.5*randn(size(t));  % 10 Hz signal + noise
-
-% Apply lowpass filter at 20 Hz
-filtered = filterLowpass(data, fs, 20);
-
-% Plot results
-figure;
-subplot(2,1,1); plot(t, data); title('Original');
-subplot(2,1,2); plot(t, filtered); title('Filtered');
-```
-
-### Removing Power Line Noise
-
-```matlab
-% Remove 60 Hz interference with bandstop filter
+% Functional approach
 fs = 1000;
-cleaned = filterBandstop(data, fs, 58, 62, 4, IIRMethods.Butterworth);
+cleanData = filterLowpass(noisyData, fs, 50, 4, IIRMethods.Butterworth);
+
+% Class approach
+lpf = LowpassFilter(fs, 50, 4, IIRMethods.Butterworth);
+cleanData = lpf.apply(noisyData);
 ```
 
-### ECG Signal Processing
+### ECG Processing Pipeline
 
 ```matlab
-% ECG typical processing pipeline
-fs = 500;  % 500 Hz sampling
+fs = 500;
 
-% 1. Remove baseline wander (< 0.5 Hz)
-ecg_hp = filterHighpass(ecg, fs, 0.5, 2);
+% Option 1: Functional (quick and simple)
+ecg = filterHighpass(ecg_raw, fs, 0.5, 2);      % Remove baseline
+ecg = filterLowpass(ecg, fs, 40, 4);            % Remove HF noise
+ecg = filterBandstop(ecg, fs, 58, 62, 4);       % Remove 60 Hz
 
-% 2. Remove high-frequency noise (> 40 Hz)
-ecg_lp = filterLowpass(ecg_hp, fs, 40, 4);
+% Option 2: Class (reusable pipeline)
+hpf = HighpassFilter(fs, 0.5, 2);
+lpf = LowpassFilter(fs, 40, 4);
+notch = BandstopFilter(fs, 58, 62, 4);
 
-% 3. Remove 60 Hz power line
-ecg_clean = filterBandstop(ecg_lp, fs, 58, 62, 4);
+ecg = notch.apply(lpf.apply(hpf.apply(ecg_raw)));
 ```
 
 ### Smooth Sensor Data
 
 ```matlab
-% Fast smoothing with moving average
-smooth_fast = filterMovingAverage(sensor_data, 10);
+% Simple smoothing
+smoothed = filterMovingAverage(sensorData, 10);
 
-% More responsive smoothing with exponential filter
-smooth_responsive = filterMovingExp(sensor_data, 0.3);
+% Responsive smoothing
+smoothed = filterMovingExp(sensorData, 0.3);
 
-% Optimal smoothing with Kalman filter
-smooth_optimal = filterKalman(sensor_data, 1e-5, 0.01);
+% Optimal smoothing
+smoothed = filterKalman(sensorData, 1e-5, 0.01);
+```
+
+### Real-time Processing with Classes
+
+```matlab
+% Create filters once
+maf = MovingAverageFilter(10);
+emaf = ExponentialMovingAverageFilter(0.3);
+
+% Process streaming data
+while acquiring
+    newSample = getSensorData();
+    smooth1 = maf.apply(newSample);
+    smooth2 = emaf.apply(newSample);
+    
+    % Adapt filter based on conditions
+    if isNoisy
+        emaf.setAlpha(0.1);  % More smoothing
+    else
+        emaf.setAlpha(0.5);  % More responsive
+    end
+end
 ```
 
 ### Compare Filter Methods
@@ -261,240 +143,224 @@ fs = 1000;
 fc = 50;
 order = 4;
 
-% Design different filters
+% Try different IIR methods
 y_butter = filterButterworth(data, fs, fc, order, 'low');
 y_cheby1 = filterChebyshev1(data, fs, fc, order, 1, 'low');
 y_cheby2 = filterChebyshev2(data, fs, fc, order, 40, 'low');
 y_ellip = filterElliptic(data, fs, fc, order, 1, 40, 'low');
 
-% Plot comparison
-figure;
-plot(data, 'k'); hold on;
-plot(y_butter, 'b');
-plot(y_cheby1, 'r');
-plot(y_cheby2, 'g');
-plot(y_ellip, 'm');
+% Plot and compare
+plot([data, y_butter, y_cheby1, y_cheby2, y_ellip]);
 legend('Original', 'Butterworth', 'Cheby1', 'Cheby2', 'Elliptic');
 ```
 
 ---
 
-## Filter Comparison
+## IIR Filter Methods Comparison
 
-### IIR Methods Comparison
-
-| Method | Roll-off | Passband | Stopband | Complexity |
-|--------|----------|----------|----------|------------|
-| **Butterworth** | Moderate | Flat | Monotonic | Low |
-| **Chebyshev 1** | Sharp | Ripple | Flat | Medium |
-| **Chebyshev 2** | Sharp | Flat | Ripple | Medium |
-| **Elliptic** | Sharpest | Ripple | Ripple | High |
-
-### When to Use Each Filter Type
-
-| Application | Recommended Filter | Reason |
-|-------------|-------------------|--------|
-| Audio processing | Butterworth | No passband ripple |
-| Anti-aliasing | Butterworth/Cheby2 | Flat passband |
-| Communications | Elliptic | Sharpest roll-off |
-| ECG/EEG | Butterworth | Minimal distortion |
-| Sensor smoothing | Moving Average/Kalman | Simple/Optimal |
-| Real-time tracking | Exponential MA/Kalman | Low latency |
+| Method | Passband | Stopband | Roll-off | Best For |
+|--------|----------|----------|----------|----------|
+| **Butterworth** | Flat | Monotonic | Moderate | General purpose, audio |
+| **Chebyshev 1** | Ripple | Flat | Sharp | Sharp cutoff, ripple OK |
+| **Chebyshev 2** | Flat | Ripple | Sharp | Flat passband needed |
+| **Elliptic** | Ripple | Ripple | Sharpest | Steepest possible cutoff |
 
 ---
 
-## Technical Details
+## When to Use Each Interface
 
-### Implementation Notes
+### Use Functional Interface
+✅ One-time filtering operations  
+✅ Quick prototyping and testing  
+✅ Simple scripts  
+✅ No parameter changes needed  
 
-1. **Zero-Phase Filtering**: All IIR filters use `filtfilt` (forward-backward filtering) to eliminate phase distortion
-2. **Bilinear Transform**: Analog prototypes are converted to digital using the bilinear transformation
-3. **Frequency Pre-warping**: Cutoff frequencies are pre-warped to account for bilinear transform distortion
-4. **No Toolbox Required**: All functions implemented from scratch using basic MATLAB
-
-### Filter Design Process (IIR)
-
-```
-1. Analog Prototype Design
-   ├── Butterworth: buttap(n)
-   ├── Chebyshev1: cheb1ap(n, Rp)
-   ├── Chebyshev2: cheb2ap(n, Rs)
-   └── Elliptic: ellipap(n, Rp, Rs)
-   
-2. Frequency Transformation
-   ├── Lowpass: lp2lp()
-   ├── Highpass: lp2hp()
-   ├── Bandpass: lp2bp()
-   └── Bandstop: lp2bs()
-   
-3. Bilinear Transform (s → z)
-   └── bilinear_zp(z, p, k)
-   
-4. Apply Filter
-   └── filtfilt_manual(b, a, x)
+```matlab
+y = filterLowpass(data, 1000, 50);
 ```
 
-### Stability Considerations
+### Use Class Interface
+✅ Processing multiple signals with same settings  
+✅ Dynamic parameter adjustment  
+✅ Building filter pipelines  
+✅ Object-oriented applications  
 
-- IIR filters can become unstable for high orders (> 10-12)
-- Bandpass/bandstop filters double the order
-- All implementations check for valid cutoff frequencies
-- Filters are normalized to prevent numerical issues
-
----
-
-## API Reference
-
-### Type-Specific Functions
-
-#### `filterLowpass(data, fs, fc, order, method)`
-**Parameters:**
-- `data`: Input signal vector
-- `fs`: Sampling frequency (Hz)
-- `fc`: Cutoff frequency (Hz)
-- `order`: Filter order (default: 4)
-- `method`: IIRMethods enum (default: Butterworth)
-
-**Returns:** Filtered signal
+```matlab
+lpf = LowpassFilter(1000, 50);
+for i = 1:N
+    output{i} = lpf.apply(input{i});
+end
+```
 
 ---
 
-#### `filterHighpass(data, fs, fc, order, method)`
-**Parameters:**
-- `data`: Input signal vector
-- `fs`: Sampling frequency (Hz)
-- `fc`: Cutoff frequency (Hz)
-- `order`: Filter order (default: 4)
-- `method`: IIRMethods enum (default: Butterworth)
+## Common Applications
 
-**Returns:** Filtered signal
+### Audio Processing
+```matlab
+% Remove high-frequency noise
+lpf = LowpassFilter(44100, 8000, 6, IIRMethods.Butterworth);
+cleanAudio = lpf.apply(noisyAudio);
+```
 
----
+### Biomedical Signals
+```matlab
+% ECG: Remove baseline and powerline
+hpf = HighpassFilter(500, 0.5, 2);
+notch = BandstopFilter(500, 58, 62, 4);
+cleanECG = notch.apply(hpf.apply(rawECG));
+```
 
-#### `filterBandpass(data, fs, fc1, fc2, order, method)`
-**Parameters:**
-- `data`: Input signal vector
-- `fs`: Sampling frequency (Hz)
-- `fc1`: Lower cutoff frequency (Hz)
-- `fc2`: Upper cutoff frequency (Hz)
-- `order`: Filter order (default: 4)
-- `method`: IIRMethods enum (default: Butterworth)
+### Sensor Fusion
+```matlab
+% Kalman filter for optimal estimation
+kf = KalmanFilter(1e-5, 0.01);
+optimalEstimate = kf.apply(noisyMeasurements);
+```
 
-**Returns:** Filtered signal
-
----
-
-#### `filterBandstop(data, fs, fc1, fc2, order, method)`
-**Parameters:**
-- `data`: Input signal vector
-- `fs`: Sampling frequency (Hz)
-- `fc1`: Lower cutoff frequency (Hz)
-- `fc2`: Upper cutoff frequency (Hz)
-- `order`: Filter order (default: 4)
-- `method`: IIRMethods enum (default: Butterworth)
-
-**Returns:** Filtered signal
-
----
-
-#### `filterMovingAverage(data, windowSize)`
-**Parameters:**
-- `data`: Input signal vector
-- `windowSize`: Number of samples to average (default: 5)
-
-**Returns:** Smoothed signal
-
----
-
-#### `filterMovingExp(data, alpha)`
-**Parameters:**
-- `data`: Input signal vector
-- `alpha`: Smoothing factor 0-1 (default: 0.3)
-  - Higher α = more responsive
-  - Lower α = more smoothing
-
-**Returns:** Smoothed signal
-
----
-
-#### `filterKalman(data, processNoise, measNoise, initialEst, initialCov)`
-**Parameters:**
-- `data`: Input signal vector
-- `processNoise`: Process noise covariance Q (default: 1e-5)
-- `measNoise`: Measurement noise covariance R (default: 0.01)
-- `initialEst`: Initial state estimate (default: data(1))
-- `initialCov`: Initial error covariance P (default: 1)
-
-**Returns:** Filtered signal
-
----
-
-### Method-Specific Functions
-
-#### `filterButterworth(data, fs, fc, order, filterType)`
-Direct access to Butterworth filter for any type.
-
-#### `filterChebyshev1(data, fs, fc, order, ripple, filterType)`
-Direct access to Chebyshev Type 1 filter.
-
-#### `filterChebyshev2(data, fs, fc, order, attenuation, filterType)`
-Direct access to Chebyshev Type 2 filter.
-
-#### `filterElliptic(data, fs, fc, order, ripple, attenuation, filterType)`
-Direct access to Elliptic filter.
+### Communications
+```matlab
+% Extract specific frequency band
+bpf = BandpassFilter(10000, 1000, 3000, 6, IIRMethods.Elliptic);
+signal = bpf.apply(receivedData);
+```
 
 ---
 
 ## Best Practices
 
-### 1. **Choosing Filter Order**
+### Filter Order Selection
 ```matlab
-% Start with order 4, increase if needed
-order = 4;  % Good starting point
-order = 6;  % Sharper cutoff
-order = 8;  % Very sharp (watch for stability)
+order = 4;   % Good starting point
+order = 6;   # Sharper cutoff
+order = 8;   % Very sharp (watch stability)
 ```
 
-### 2. **Cutoff Frequency Selection**
+### Cutoff Frequency Guidelines
 ```matlab
-% Rule of thumb: fc should be well below Nyquist
-fc_max = fs / 2;  % Nyquist frequency
-fc = 0.4 * fc_max;  % Safe choice
+fc_max = fs / 2;        % Nyquist frequency
+fc = 0.3 * fc_max;      % Safe choice (avoid aliasing)
 ```
 
-### 3. **Handling Edge Effects**
+### Handle Edge Effects
 ```matlab
-% Pad data before filtering for better edge behavior
-pad_length = 100;
-data_padded = [repmat(data(1), pad_length, 1); data; repmat(data(end), pad_length, 1)];
-filtered_padded = filterLowpass(data_padded, fs, fc);
-filtered = filtered_padded(pad_length+1:end-pad_length);
+% Pad data before filtering
+pad = 100;
+padded = [repmat(data(1), pad, 1); data; repmat(data(end), pad, 1)];
+filtered = lpf.apply(padded);
+result = filtered(pad+1:end-pad);
 ```
 
-### 4. **Real-Time vs Batch Processing**
+### Build Reusable Pipelines
 ```matlab
-% Batch: Use filtfilt for zero-phase
-y_batch = filterLowpass(data, fs, fc);  % Zero-phase
-
-% Real-time: Use single-pass filter
-% (requires modification to use filter() instead of filtfilt())
+classdef MyProcessor
+    properties
+        HPF, LPF, Notch
+    end
+    
+    methods
+        function obj = MyProcessor(fs)
+            obj.HPF = HighpassFilter(fs, 0.5);
+            obj.LPF = LowpassFilter(fs, 40);
+            obj.Notch = BandstopFilter(fs, 58, 62);
+        end
+        
+        function clean = process(obj, raw)
+            clean = obj.Notch.apply(obj.LPF.apply(obj.HPF.apply(raw)));
+        end
+    end
+end
 ```
+
+---
+
+## Getting Help
+
+All classes have embedded documentation:
+```matlab
+help LowpassFilter
+help filterLowpass
+help ExponentialMovingAverageFilter
+```
+
+Example:
+```matlab
+>> help LowpassFilter
+
+  LowpassFilter - Apply lowpass filter to signals
+  
+  Syntax:
+    lpf = LowpassFilter(fs, fc, order, method)
+    y = lpf.apply(data)
+  
+  Properties:
+    Fs      - Sampling frequency (Hz)
+    Fc      - Cutoff frequency (Hz)
+    Order   - Filter order
+    Method  - IIRMethods enum
+  
+  Methods:
+    apply      - Apply filter to data
+    setCutoff  - Update cutoff frequency
+    ...
+```
+
+---
+
+## File Structure
+
+```
+filters/
+├── FilterHelpers.m              % Core DSP functions
+├── FilterTypes.m                % Filter type enumeration
+├── IIRMethods.m                 % IIR method enumeration
+│
+├── Functional Interface/
+│   ├── filterLowpass.m
+│   ├── filterHighpass.m
+│   ├── filterBandpass.m
+│   ├── filterBandstop.m
+│   ├── filterMovingAverage.m
+│   ├── filterMovingExp.m
+│   ├── filterKalman.m
+│   ├── filterButterworth.m
+│   ├── filterChebyshev1.m
+│   ├── filterChebyshev2.m
+│   └── filterElliptic.m
+│
+└── Class Interface/
+    ├── LowpassFilter.m
+    ├── HighpassFilter.m
+    ├── BandpassFilter.m
+    ├── BandstopFilter.m
+    ├── MovingAverageFilter.m
+    ├── ExponentialMovingAverageFilter.m
+    ├── KalmanFilter.m
+    ├── ButterworthFilter.m
+    ├── Chebyshev1Filter.m
+    ├── Chebyshev2Filter.m
+    └── EllipticFilter.m
+```
+
+---
+
+## Technical Notes
+
+- **Zero-Phase Filtering**: All IIR filters use forward-backward filtering (`filtfilt`) to eliminate phase distortion
+- **Bilinear Transform**: Analog prototypes converted to digital domain with frequency pre-warping
+- **Stability**: Filters are designed for stability; avoid very high orders (>10) for bandpass/bandstop
+- **No Toolbox**: Pure MATLAB implementation using only built-in functions
 
 ---
 
 ## Troubleshooting
 
-### Issue: Filter is unstable
-**Solution**: Reduce filter order or check cutoff frequencies
-
-### Issue: Not enough attenuation
-**Solution**: Increase filter order or use Elliptic method
-
-### Issue: Signal is distorted
-**Solution**: Check if cutoff frequency is too low, or reduce order
-
-### Issue: Slow performance
-**Solution**: Use Moving Average for simple smoothing, reduce filter order
+| Issue | Solution |
+|-------|----------|
+| Filter unstable | Reduce order or check cutoff frequencies |
+| Not enough attenuation | Increase order or use Elliptic method |
+| Signal distorted | Check cutoff frequency isn't too low |
+| Slow performance | Reduce order or use Moving Average for simple smoothing |
 
 ---
 
@@ -502,21 +368,7 @@ y_batch = filterLowpass(data, fs, fc);  % Zero-phase
 
 This library is provided as-is for educational and research purposes.
 
-## Contributing
-
-Contributions are welcome! Please ensure:
-- No Signal Processing Toolbox dependencies
-- Clear documentation
-- Usage examples
-- Proper error handling
-
-## References
-
-1. Oppenheim, A. V., & Schafer, R. W. (2009). *Discrete-Time Signal Processing*
-2. Parks, T. W., & Burrus, C. S. (1987). *Digital Filter Design*
-3. Antoniou, A. (2006). *Digital Signal Processing: Signals, Systems, and Filters*
-
 ---
 
-**Version**: 1.0  
+**Version**: Development (Experimental)  
 **Last Updated**: 2025
